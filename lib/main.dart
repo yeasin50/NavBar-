@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
 import './CustomPaints/DrawerPainter.dart';
+import './buttonGenerator.dart';
 
 void main() {
   runApp(MyApp());
@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'NavBar',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.red,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: MyHomePage(),
@@ -44,6 +44,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   getPosition(duration) {
+    // after render object we are able to get position
     RenderBox renderBox = globalKey.currentContext.findRenderObject();
     final position = renderBox.localToGlobal(Offset.zero);
     double start = position.dy - 20; //topBar
@@ -62,8 +63,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   double getSize(int index) {
     double size = (_offset.dy > limits[index] && _offset.dy < limits[index + 1])
-        ? 25
-        : 20;
+        ? 22
+        : 18;
     return size;
   }
 
@@ -74,199 +75,181 @@ class _MyHomePageState extends State<MyHomePage> {
     final menuContainerHeight = mediaQuery.height / 2;
     return SafeArea(
       child: Scaffold(
-        body: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color.fromRGBO(255, 65, 108, 1.0),
-                Color.fromRGBO(255, 75, 73, 1.0),
-              ],
-            ),
-          ),
-          width: mediaQuery.width,
-          child: Stack(
-            children: <Widget>[
-              Center(
-                child: MaterialButton(
-                  color: Colors.white,
-                  child: Text(
-                    "Elastic NavBar",
-                    style: TextStyle(
-                      color: Colors.black,
-                    ),
-                  ),
-                  onPressed: () {},
-                ),
+        body: GestureDetector(
+          onHorizontalDragEnd: (details) {
+            if (details.primaryVelocity > 0) {
+              print("SwipeLeft");
+              setState(() {
+                isMenuOpen = true;
+              });
+            } else if (details.primaryVelocity < 0) {
+              print("Swipe Right");
+              setState(() {
+                isMenuOpen = false;
+              });
+            }
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Color.fromRGBO(255, 65, 108, 1.0),
+                  Color.fromRGBO(255, 75, 73, 1.0),
+                ],
               ),
-              //SizeBox contain sideBar
-              AnimatedPositioned(
-                duration: Duration(milliseconds: 400),
-                //20 gonna always open
-                left: isMenuOpen ? 0 : -sidebarSize + 20,
-                top: 0,
-                curve: Curves.elasticOut,
-                child: SizedBox(
-                  width: sidebarSize,
-                  child: GestureDetector(
-                    //we can get moving location
-                    onPanUpdate: (details) {
-                      /// return fingure position on the screen
-                      ///
-                      /// checking if fingure out of sideBar,nothing gonna change
-                      if (details.localPosition.dx <= sidebarSize) {
-                        setState(() {
-                          _offset = details.localPosition;
-                        });
-                      }
+            ),
+            width: mediaQuery.width,
+            child: Stack(
+              children: <Widget>[
+                Center(
+                  child: MaterialButton(
+                    color: Colors.white,
+                    child: Text(
+                      "Elastic NavBar",
+                      style: TextStyle(
+                        color: Colors.black,
+                      ),
+                    ),
+                    onPressed: () {},
+                  ),
+                ),
 
-                      //opening sideBar
-                      if (details.localPosition.dx > sidebarSize - 20 &&
-                          details.delta.distanceSquared > 2) {
+                //SizeBox contain sideBar
+                AnimatedPositioned(
+                  duration: Duration(milliseconds: 400),
+                  //+20 gonna always open but now we are using GestureDetector to handle
+                  left: isMenuOpen ? 0 : -sidebarSize,
+                  top: 0,
+                  curve: Curves.elasticOut,
+                  child: SizedBox(
+                    width: sidebarSize,
+                    child: GestureDetector(
+                      //we can get moving location
+                      onPanUpdate: (details) {
+                        /// return fingure position on the screen
+                        /// checking if fingure out of sideBar,nothing gonna change
+                        if (details.localPosition.dx <= sidebarSize) {
+                          setState(() {
+                            _offset = details.localPosition;
+                          });
+                        }
+                        //opening sideBar , with visible 20 from right
+                        //now we are using GestureDetector
+                        // if (details.localPosition.dx > sidebarSize - 20 &&
+                        //     details.delta.distanceSquared > 2) {
+                        //   setState(() {
+                        //     isMenuOpen = true;
+                        //   });
+                        // }
+                      },
+                      //we can detect when click on screen
+                      onPanEnd: (details) {
                         setState(() {
-                          isMenuOpen = true;
+                          //while pull out fingure from screen,
+                          _offset = Offset(0, 0);
                         });
-                      }
-                    },
-                    //we can detect when click on screen
-                    onPanEnd: (details) {
-                      setState(() {
-                        //while pull out fingure from screen,
-                        _offset = Offset(0, 0);
-                      });
-                    },
-                    child: Stack(
-                      children: <Widget>[
-                        CustomPaint(
-                          size: Size(sidebarSize, mediaQuery.height),
-                          painter: DrawerPainter(offset: _offset),
-                        ),
-                        Container(
-                          height: mediaQuery.height,
-                          width: sidebarSize,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.max,
-                            children: <Widget>[
-                              Container(
-                                height: mediaQuery.height * .25,
-                                child: Center(
+                      },
+                      child: Stack(
+                        children: <Widget>[
+                          CustomPaint(
+                            size: Size(sidebarSize, mediaQuery.height),
+                            painter: DrawerPainter(offset: _offset),
+                          ),
+                          Container(
+                            height: mediaQuery.height,
+                            width: sidebarSize,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.max,
+                              children: <Widget>[
+                                Container(
+                                  height: mediaQuery.height * .25,
+                                  child: Center(
+                                    child: Column(
+                                      children: <Widget>[
+                                        Image.asset(
+                                          "assets/images/smile.jpg",
+                                          width: sidebarSize / 2,
+                                        ),
+                                        Text(
+                                          "Senorita👼🏿",
+                                          style:
+                                              TextStyle(color: Colors.black54),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                Divider(
+                                  thickness: 2,
+                                ),
+                                Container(
+                                  key: globalKey,
+                                  width: double.infinity,
+                                  height: menuContainerHeight,
                                   child: Column(
                                     children: <Widget>[
-                                      Image.asset(
-                                        "assets/images/smile.jpg",
-                                        width: sidebarSize / 2,
+                                      //being 5 button devided by 5
+                                      MyButton(
+                                        text: "Profile",
+                                        iconData: Icons.person,
+                                        textSize: getSize(0),
+                                        height: (menuContainerHeight) / 5,
                                       ),
-                                      Text(
-                                        "Senorita👼🏿",
-                                        style: TextStyle(color: Colors.black54),
+                                      MyButton(
+                                        text: "Payments",
+                                        iconData: Icons.payment,
+                                        textSize: getSize(1),
+                                        height: (menuContainerHeight) / 5,
+                                      ),
+                                      MyButton(
+                                        text: "Notifications",
+                                        iconData: Icons.notifications,
+                                        textSize: getSize(2),
+                                        height: (mediaQuery.height / 2) / 5,
+                                      ),
+                                      MyButton(
+                                        text: "Settings",
+                                        iconData: Icons.settings,
+                                        textSize: getSize(3),
+                                        height: (menuContainerHeight) / 5,
+                                      ),
+                                      MyButton(
+                                        text: "Files",
+                                        iconData: Icons.attach_file,
+                                        textSize: getSize(4),
+                                        height: (menuContainerHeight) / 5,
                                       ),
                                     ],
                                   ),
-                                ),
-                              ),
-                              Divider(
-                                thickness: 2,
-                              ),
-                              Container(
-                                key: globalKey,
-                                width: double.infinity,
-                                height: menuContainerHeight,
-                                child: Column(
-                                  children: <Widget>[
-                                    //being 5 button devided by 5
-                                    MyButton(
-                                      text: "Profile",
-                                      iconData: Icons.person,
-                                      textSize: getSize(0),
-                                      height: (menuContainerHeight) / 5,
-                                    ),
-                                    MyButton(
-                                      text: "Payments",
-                                      iconData: Icons.payment,
-                                      textSize: getSize(1),
-                                      height: (menuContainerHeight) / 5,
-                                    ),
-                                    MyButton(
-                                      text: "Notifications",
-                                      iconData: Icons.notifications,
-                                      textSize: getSize(2),
-                                      height: (mediaQuery.height / 2) / 5,
-                                    ),
-                                    MyButton(
-                                      text: "Settings",
-                                      iconData: Icons.settings,
-                                      textSize: getSize(3),
-                                      height: (menuContainerHeight) / 5,
-                                    ),
-                                    MyButton(
-                                      text: "Files",
-                                      iconData: Icons.attach_file,
-                                      textSize: getSize(4),
-                                      height: (menuContainerHeight) / 5,
-                                    ),
-                                  ],
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                        //sidebar clossing button
-                        AnimatedPositioned(
-                            right: isMenuOpen ? 10 : sidebarSize,
-                            bottom: 30,
-                            child: IconButton(
-                              icon: Icon(Icons.backspace_outlined),
-                              enableFeedback: true,
-                              onPressed: () {
-                                this.setState(() {
-                                  isMenuOpen = false;
-                                });
-                              },
+                                )
+                              ],
                             ),
-                            duration: Duration(milliseconds: 350)),
-                      ],
+                          ),
+                          //sidebar clossing button
+                          AnimatedPositioned(
+                              right: isMenuOpen ? 10 : sidebarSize,
+                              bottom: 15,
+                              child: IconButton(
+                                icon: Icon(Icons.backspace_outlined),
+                                enableFeedback: true,
+                                onPressed: () {
+                                  this.setState(() {
+                                    isMenuOpen = false;
+                                  });
+                                },
+                              ),
+                              duration: Duration(milliseconds: 350)),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
-    );
-  }
-}
-
-class MyButton extends StatelessWidget {
-  final String text;
-  final IconData iconData;
-  final double textSize;
-  final double height;
-
-  MyButton({this.text, this.iconData, this.textSize, this.height});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialButton(
-      height: height,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        mainAxisSize: MainAxisSize.max,
-        children: <Widget>[
-          Icon(
-            iconData,
-            color: Colors.black45,
-          ),
-          SizedBox(
-            width: 10,
-          ),
-          Text(
-            text,
-            style: TextStyle(color: Colors.black45, fontSize: textSize),
-          ),
-        ],
-      ),
-      onPressed: () {},
     );
   }
 }

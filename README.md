@@ -1,7 +1,13 @@
-# Elastic Navigation sideBar
+## Elastic Navigation sideBar
 
 - Animation
 - CustomPaint
+- GestureDetector
+-  ...
+  
+ temp folder used to test project 
+### It will look like this
+![Elastic Navbar 4mb+](https://github.com/yeasin50/AssetsFor_/blob/master/temp/Gif/Navbar.gif)
 
 
 
